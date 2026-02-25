@@ -1,0 +1,5 @@
+public/main.js
+.bsp/
+.metals/
+.scala-build/
+node_modules/

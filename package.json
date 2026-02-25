@@ -1,0 +1,19 @@
+{
+  "name": "x",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "serve public",
+    "prod": "scala-cli package . --js -o public/main.js --js-mode release"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "serve": "^14.2.5"
+  }
+}
