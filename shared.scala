@@ -6,6 +6,11 @@
 package migke.app
 import sttp.tapir.*
 import scala.compiletime.ops.string
+import sttp.tapir.generic.auto.*
+case class Item(task: String, done: Boolean, id: Int)
+object Item {
+  given upickle.default.ReadWriter[Item] = upickle.default.macroRW
+}
 object Data {
-  def index = endpoint.get.in("")
+  def all = endpoint.get.in("api" / "items").out(json.upickle.jsonBody[Seq[Item]])
 }
