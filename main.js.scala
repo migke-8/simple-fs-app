@@ -1,41 +1,26 @@
 //> using target.platform scala-js
+//> using jsVersion "1.15.0"
 //> using file "shared.scala"
 //> using dep "org.scala-js::scalajs-dom::2.8.1"
-//> using dep "com.softwaremill.sttp.tapir::tapir-sttp-client4:1.13.9"
+//> using dep "com.softwaremill.sttp.tapir::tapir-sttp-client4_sjs1:1.13.13"
+//> using dep "com.softwaremill.sttp.client4::core:4.0.20"
 package migke.app.front
 import org.scalajs.dom.*
 import sttp.tapir.*
 import sttp.tapir.client.sttp4.*
 import sttp.client4.*
-import migke.app.Data.all
-import sttp.client4.httpclient.HttpClientSyncBackend
-@main def run = {
-  val list = create[HTMLUListElement]("ul")
-    .pipe(_.id = "list")
-    .pipe(el =>
-        fromDB.map(_ match {
-          case Right(v) => v.map(translateToDOM(_))
-          case _ => {}
-        })
-    )
+import migke.app.point
+import sttp.client4.fetch.FetchBackend
+import sttp.model.Method
+import sttp.model.Uri
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+given ExecutionContext = ExecutionContext.global
+@main def run() = {
+  val h1 = create[HTMLHeadingElement]("h1")
+    .pipe(_.style.color = "red")
     .appendTo("body")
-  val input = create[HTMLInputElement]("input")
-    .pipe(_.`type` = "text")
-    .appendTo("body")
-  val btn = create[HTMLButtonElement]("button")
-    .pipe(_.innerText = "add")
-    .pipe(
-      _.addEventListener(
-        "click",
-        { _ =>
-          list.pipe(_.innerText = "")
-          create[HTMLDataListElement]("li")
-            .pipe(_.innerText = input.element.value)
-            .appendTo("ul")
-        }
-      )
-    )
-    .appendTo("body")
+  fromDB.foreach(res => h1.pipe(_.innerText = res.body))
 }
 def create[T <: Element](name: String) = DOMObject(
   document.createElement(name).asInstanceOf[T]
@@ -55,12 +40,4 @@ case class DOMObject[T <: Element](element: T) {
     DOMObject(res)
   }
 }
-def fromDB = SttpClientInterpreter()
-  .toRequest(all, Some(uri"http://localhost:8080"))(())
-  .send(HttpClientSyncBackend())
-  .body match {
-  case DecodeResult.Value(v)    => v
-  case _ => println("error")
-}
-def translateToDOM(item: migke.app.Item) =
-  create[HTMLUListElement]("li").children(create("div").pipe(_.innerText = item.task))
+def fromDB = SttpClientInterpreter().toRequest(point, Some(Uri("localhost:8080"))).apply(()).response(asStringAlways).send(FetchBackend())
